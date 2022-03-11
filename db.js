@@ -35,11 +35,21 @@ async function insertar_usuario(nombre, balance) {
 async function transferencias() {
     let client
     client = await pool.connect();
-    let res = await client.query({ text: `select * from transferencias` });
+
+    // [ [?, "nombre emisor", "nombre recept1o", monto, fecha] ]
+
+    let res = await client.query({
+        text: `select transferencias.id, emisor.nombre, receptor.nombre as nombre1, transferencias.monto, transferencias.fecha
+                from transferencias join usuarios as emisor on transferencias.emisor = emisor.id 
+                join usuarios as receptor on transferencias.receptor = receptor.id`,
+        rowMode: "array"
+    });
+
+
+    console.log(res.rows);
     client.release();
     return res.rows;
 };
-
 
 async function realizar_transferencia(nombre_emisor, nombre_receptor, monto) {
 
@@ -50,7 +60,7 @@ async function realizar_transferencia(nombre_emisor, nombre_receptor, monto) {
     });
     const emisor = rows[0];
 
-    result = await client.query({
+    const result = await client.query({
         text: 'select * from usuarios where nombre=$1',
         values: [nombre_receptor]
     });
@@ -75,13 +85,17 @@ async function realizar_transferencia(nombre_emisor, nombre_receptor, monto) {
     });
 
     await client.query({
-        text: 'insert into transferencias (emisor, receptor, monto) values (resultado1, resultado2, monto_usuario'
+        text: "insert into transferencias (emisor, receptor, monto) values ($1, $2, $3)",
+        values: [emisor.id, receptor.id, monto_usuario]
     });
 
+    client.release();
+    return result.rows;
 }
 
-
-
+/*  await client.query({
+        text: 'insert into transferencias (emisor, receptor, monto) values (resultado1, resultado2, monto_usuario' );
+ */
 
 async function eliminar_usuario(id_usuario) {
     let client

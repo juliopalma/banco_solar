@@ -17,6 +17,7 @@ app.post('/usuario', async(req, res) => {
             res.json({ datos });
         } catch (error) {
             console.log("Error al realizar la consulta es: " + error);
+            res.status(400).send({ error });
         }
     })
 });
@@ -34,13 +35,11 @@ app.get('/usuarios', async(req, res) => {
 app.get('/transferencias', async(req, res) => {
     try {
         let allTransferencias = await transferencias();
-        //res.json(allusers);
         res.send(JSON.stringify(allTransferencias));
     } catch (error) {
         console.log("Error al realizar la consulta es: " + error);
     }
 });
-
 
 app.post('/transferencia', async(req, res) => {
     let body = ""
@@ -80,8 +79,8 @@ app.put('/usuario', async(req, res) => {
     req.on("end", async() => {
         try {
             const datos = JSON.parse(body);
-            console.log(datos);
-            console.log(req.query.id);
+            /* console.log(datos);
+            console.log(req.query.id); */
             await actualizar_usuario(datos.name, datos.balance, req.query.id);
             res.json({ datos });
         } catch (error) {
